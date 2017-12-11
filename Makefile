@@ -24,7 +24,7 @@ LDFLAGS= -lcrypto
 all: ldid
 
 %.o: %.cpp
-	$(CXX) -std=c++0x $(FLAGS) -c -o $@ $<
+	x86_64-pc-cygwin-g++ -std=c++0x $(FLAGS) -c -o $@ $<
 
 %.o: %.c
 	$(CC) $(FLAGS) -c -o $@ $<

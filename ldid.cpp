@@ -1622,7 +1622,7 @@ void DiskFolder::Find(const std::string &root, const std::string &base, const Fu
 
         bool directory;
 
-#ifdef __WIN32__
+#if defined(__WIN32__) || defined(__CYGWIN__) || defined(__MINGW32__)
         struct stat info;
         _syscall(stat(path.c_str(), &info));
         if (false);
