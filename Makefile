@@ -3,7 +3,7 @@ INSTALLPREFIX ?= /usr/local
 OPTIMIZE ?= 2
 LTO ?= 0
 
-override FLAGS= -O$(OPTIMIZE) -I. -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare
+override FLAGS= -O$(OPTIMIZE) -I. -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -fPIC
 override FLAGS+= -DLDID_NOPLIST
 
 ifeq ($(LTO), 1)
