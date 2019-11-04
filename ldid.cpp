@@ -2778,6 +2778,10 @@ static void usage(const char *argv0) {
     fprintf(stderr, "   %s -e MobileSafari\n", argv0);
     fprintf(stderr, "   %s -S cat\n", argv0);
     fprintf(stderr, "   %s -Stfp.xml gdb\n", argv0);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Other Options\n");
+    fprintf(stderr, "   -Kkey.p12     Sign using private key in key.p12\n");
+    fprintf(stderr, "   -M            Merge entitlements with any existing\n");
 }
 
 #ifndef LDID_NOTOOLS
