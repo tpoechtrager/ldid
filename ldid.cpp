@@ -2784,6 +2784,16 @@ static void usage(const char *argv0) {
     fprintf(stderr, "Other Options\n");
     fprintf(stderr, "   -Kkey.p12     Sign using private key in key.p12\n");
     fprintf(stderr, "   -M            Merge entitlements with any existing\n");
+    fprintf(stderr, "   -d            Print CDHash of file\n");
+}
+
+static void print_hash(char *buf, uint8_t* hash, unsigned int hash_length)
+{
+    int i = 0;
+    char* p = buf;
+    for (i = 0; i < hash_length; i++) {
+        p += sprintf(p, "%02x", hash[i]);
+    }
 }
 
 #ifndef LDID_NOTOOLS
@@ -2812,6 +2822,7 @@ int main(int argc, char *argv[]) {
     bool flag_S(false);
     bool flag_s(false);
 
+    bool flag_d(false);
     bool flag_D(false);
 
     bool flag_A(false);
@@ -2898,6 +2909,8 @@ int main(int argc, char *argv[]) {
                 const char *xml = argv[argi] + 2;
                 requirements.open(xml, O_RDONLY, PROT_READ, MAP_PRIVATE);
             } break;
+
+            case 'd': flag_d = true; break;
 
             case 'D': flag_D = true; break;
 
@@ -3136,6 +3149,65 @@ int main(int argc, char *argv[]) {
                         struct Blob *requirement = reinterpret_cast<struct Blob *>(blob + begin);
                         fwrite(requirement, 1, Swap(requirement->length), stdout);
                     }
+            }
+
+            if (flag_d) {
+                _assert(signature != NULL);
+
+                uint32_t data = mach_header.Swap(signature->dataoff);
+                uint8_t *top = reinterpret_cast<uint8_t *>(mach_header.GetBase());
+                uint8_t *blob = top + data;
+                struct SuperBlob *super = reinterpret_cast<struct SuperBlob *>(blob);
+                bool has_alternate = false;
+                char cdhash_sha1_str[LDID_SHA1_DIGEST_LENGTH*2 + 1] = {0, };
+                char cdhash_sha256_str[LDID_SHA256_DIGEST_LENGTH*2 + 1] = {0, };
+                int max_hash_type = 0;
+                char* cdhash_str = NULL;
+                char hash_choices[64] = {0, };
+
+                for (size_t index(0); index != Swap(super->count); ++index) {
+                    switch (Swap(super->index[index].type)) {
+                        case CSSLOT_ALTERNATE:
+                            has_alternate = true;
+                        case CSSLOT_CODEDIRECTORY:
+                        {
+                            uint32_t begin = Swap(super->index[index].offset);
+                            struct CodeDirectory *directory = reinterpret_cast<struct CodeDirectory *>(blob + begin + sizeof(Blob));
+                            struct Blob *cdblob = reinterpret_cast<struct Blob *>(blob + begin);
+                            if (directory->hashType == 1) {
+                                uint8_t cdhash_sha1[LDID_SHA1_DIGEST_LENGTH];
+                                LDID_SHA1((const unsigned char*)cdblob, Swap(cdblob->length), cdhash_sha1);
+                                print_hash(cdhash_sha1_str, cdhash_sha1, LDID_SHA1_DIGEST_LENGTH);
+                                printf("CandidateCDHash sha1=%s\n", cdhash_sha1_str);
+                                if (*hash_choices) strcat(hash_choices, ",");
+                                strcat(hash_choices, "sha1");
+                                if (1 > max_hash_type) {
+                                    max_hash_type = 1;
+                                    cdhash_str = &cdhash_sha1_str[0];
+                                }
+                            } else if (directory->hashType == 2) {
+                                uint8_t cdhash_sha256[LDID_SHA256_DIGEST_LENGTH];
+                                LDID_SHA256((const unsigned char*)cdblob, Swap(cdblob->length), cdhash_sha256);
+                                print_hash(cdhash_sha256_str, cdhash_sha256, LDID_SHA256_DIGEST_LENGTH);
+                                printf("CandidateCDHash sha256=%s\n", cdhash_sha256_str);
+                                cdhash_sha256_str[LDID_SHA1_DIGEST_LENGTH*2] = '\0';
+                                if (*hash_choices) strcat(hash_choices, ",");
+                                strcat(hash_choices, "sha256");
+                                if (2 > max_hash_type) {
+                                    max_hash_type = 2;
+                                    cdhash_str = &cdhash_sha256_str[0];
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (has_alternate) {
+                    printf("Hash choices=%s\n", hash_choices);
+                }
+                if (cdhash_str) {
+                    printf("CDHash=%s\n", cdhash_str);
+                }
             }
 
             if (flag_s) {
