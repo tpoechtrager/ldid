@@ -3188,7 +3188,7 @@ int main(int argc, char *argv[]) {
                             } else if (directory->hashType == 2) {
                                 uint8_t cdhash_sha256[LDID_SHA256_DIGEST_LENGTH];
                                 LDID_SHA256((const unsigned char*)cdblob, Swap(cdblob->length), cdhash_sha256);
-                                print_hash(cdhash_sha256_str, cdhash_sha256, LDID_SHA256_DIGEST_LENGTH);
+                                print_hash(cdhash_sha256_str, cdhash_sha256, LDID_SHA1_DIGEST_LENGTH);
                                 printf("CandidateCDHash sha256=%s\n", cdhash_sha256_str);
                                 cdhash_sha256_str[LDID_SHA1_DIGEST_LENGTH*2] = '\0';
                                 if (*hash_choices) strcat(hash_choices, ",");
