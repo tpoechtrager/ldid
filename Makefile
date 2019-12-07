@@ -2,7 +2,7 @@ DESTDIR ?= /
 PREFIX  ?= /usr/local
 OPENSSL_LDFLAGS := $(shell pkg-config --libs-only-L openssl)
 OPENSSL_CFLAGS  := $(shell pkg-config --cflags openssl)
-CFLAGS += $(OPENSSL_CFLAGS)
+CFLAGS += $(OPENSSL_CFLAGS) -O2
 LDFLAGS ?= $(LDID_LIBS) $(OPENSSL_LDFLAGS)
 
 .PHONY: all clean
