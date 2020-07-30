@@ -892,8 +892,11 @@ struct CodeDirectory {
     uint32_t spare2;
     uint32_t scatterOffset;
     uint32_t teamIDOffset;
-    //uint32_t spare3;
-    //uint64_t codeLimit64;
+    uint32_t spare3;
+    uint64_t codeLimit64;
+    uint64_t execSegBase;
+    uint64_t execSegLimit;
+    uint64_t execSegFlags;
 } _packed;
 
 enum CodeSignatureFlags {
@@ -1994,7 +1997,7 @@ Hash Sign(const void *idata, size_t isize, std::streambuf &output, const std::st
             uint32_t normal((limit + PageSize_ - 1) / PageSize_);
 
             CodeDirectory directory;
-            directory.version = Swap(uint32_t(0x00020200));
+            directory.version = Swap(uint32_t(0x00020400));
             directory.flags = Swap(uint32_t(flags));
             directory.nSpecialSlots = Swap(special);
             directory.codeLimit = Swap(uint32_t(limit));
@@ -2005,8 +2008,11 @@ Hash Sign(const void *idata, size_t isize, std::streambuf &output, const std::st
             directory.pageSize = PageShift_;
             directory.spare2 = Swap(uint32_t(0));
             directory.scatterOffset = Swap(uint32_t(0));
-            //directory.spare3 = Swap(uint32_t(0));
-            //directory.codeLimit64 = Swap(uint64_t(0));
+            directory.spare3 = Swap(uint32_t(0));
+            directory.codeLimit64 = Swap(uint64_t(0));;
+            directory.execSegBase = Swap(uint64_t(0));
+            directory.execSegLimit = Swap(uint64_t(0));
+            directory.execSegFlags = Swap(uint64_t(0));
 
             uint32_t offset(sizeof(Blob) + sizeof(CodeDirectory));
 
