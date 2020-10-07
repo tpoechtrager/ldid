@@ -1,43 +1,28 @@
-PLATFORM ?= $(shell uname -s)
-INSTALLPREFIX ?= /usr/local
-OPTIMIZE ?= 2
-LTO ?= 0
+DESTDIR ?= /
+PREFIX  ?= /usr/local
+OPENSSL_LDFLAGS := $(shell pkg-config --libs-only-L openssl)
+OPENSSL_CFLAGS  := $(shell pkg-config --cflags openssl)
+CFLAGS += $(OPENSSL_CFLAGS) -O2
+LDFLAGS ?= $(LDID_LIBS) $(OPENSSL_LDFLAGS)
 
-override FLAGS= -O$(OPTIMIZE) -I. -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -fPIC
-override FLAGS+= -DLDID_NOPLIST
-
-ifeq ($(LTO), 1)
-  override FLAGS+= -flto
-endif
-
-BIN=ldid
-
-SRCS=\
-	ldid.cpp \
-	lookup2.c
-
-OBJS=$(subst .cpp,.o,$(SRCS))
-OBJS:=$(subst .c,.o,$(OBJS))
-
-LDFLAGS= -lcrypto
+.PHONY: all clean
+LDID_OBJS = ldid.cpp.o lookup2.c.o
+LDID_LIBS = -lplist -lcrypto
 
 all: ldid
 
-%.o: %.cpp
-	$(CXX) -std=c++0x $(FLAGS) -c -o $@ $<
+%.c.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $^ -I.
 
-%.o: %.c
-	$(CC) $(FLAGS) -c -o $@ $<
+%.cpp.o: %.cpp
+	$(CXX) $(CFLAGS) $(CXXFLAGS) -std=c++11 -o $@ -c $^ -I.
 
-ldid: $(OBJS)
-	$(CXX) $(FLAGS) -o $(BIN) $(OBJS) $(LDFLAGS)
-
-install: ldid
-	mkdir -p $(INSTALLPREFIX)/bin
-	cp $(BIN) $(INSTALLPREFIX)/bin
-
-.PHONY: clean
+ldid: $(LDID_OBJS)
+	$(CXX) $(CFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm -f $(BIN) $(OBJS)
- 
+	rm -f $(LDID_OBJS)
+
+install: all
+	mkdir -p $(DESTDIR)/$(PREFIX)/bin
+	cp ldid $(DESTDIR)/$(PREFIX)/bin
