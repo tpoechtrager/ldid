@@ -41,7 +41,7 @@ all: ldid
 	$(CXX) $(CXXFLAGS) -std=c++0x -o $@ -c $^ -I.
 
 ldid: $(LDID_OBJS)
-	$(CXX) $(CFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+	$(CXX) $(CFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f $(LDID_OBJS)
